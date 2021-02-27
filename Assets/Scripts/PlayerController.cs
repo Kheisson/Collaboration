@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -6,6 +7,9 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     private PlayerControls playerControls;
+    private Animator animator;
+    private bool isWalking;
+    private bool isRunning;
     private Rigidbody rigidbody;
     [SerializeField]
     private float jumpForce = 5f;
@@ -15,10 +19,18 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         playerControls = new PlayerControls();
-        rigidbody = GetComponentInChildren<Rigidbody>();
+    }
+    private void Start()
+    {
+        animator = GetComponent<Animator>();
+        rigidbody = GetComponent<Rigidbody>();
     }
 
-    private void OnEnable() => playerControls.Player.Enable();
+    private void OnEnable()
+    {
+        playerControls.Player.Enable();
+        playerControls.Player.Jump.performed += Jumping;
+    }
 
     private void OnDisable() => playerControls.Player.Disable();
 
@@ -26,20 +38,31 @@ public class PlayerController : MonoBehaviour
     {
         MovePlayer();
     }
-    public void Jump()
+    private void MovePlayer()
     {
+        //Handle Movement
+        var input = playerControls.Player.Movement.ReadValue<Vector2>();
+        var moveVector = new Vector3
+        {
+            x = input.x,
+            z = input.y
+        };
+
+        //Handle Walking animation
+        if (input.magnitude > 0.1)
+            animator.SetBool("isWalking", true);
+        else
+            animator.SetBool("isWalking", false);
+
+        transform.position += moveVector * playerSpeed * Time.deltaTime;
+
+        //Handle Rotation
+        transform.LookAt(transform.position + moveVector);
+    }
+    private void Jumping(InputAction.CallbackContext ctx)
+    {
+        animator.SetTrigger("Jump");
         rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
     }
 
-    private void MovePlayer()
-    {
-        var movementInput = playerControls.Player.Movement.ReadValue<Vector2>();
-        var movePosition = new Vector3
-        {
-            x = movementInput.x,
-            z = movementInput.y
-        };
-
-        rigidbody.velocity = transform.position + movePosition.normalized * playerSpeed;
-    }
 }
