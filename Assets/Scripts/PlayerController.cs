@@ -8,9 +8,7 @@ public class PlayerController : MonoBehaviour
 {
     private PlayerControls playerControls;
     private Animator animator;
-    private bool isWalking;
-    private bool isRunning;
-    private Rigidbody rigidbody;
+    private Rigidbody rbody;
     [SerializeField]
     private float jumpForce = 5f;
     [SerializeField]
@@ -23,7 +21,7 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         animator = GetComponent<Animator>();
-        rigidbody = GetComponent<Rigidbody>();
+        rbody = GetComponent<Rigidbody>();
     }
 
     private void OnEnable()
@@ -62,7 +60,7 @@ public class PlayerController : MonoBehaviour
     private void Jumping(InputAction.CallbackContext ctx)
     {
         animator.SetTrigger("Jump");
-        rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        rbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
     }
 
 }
