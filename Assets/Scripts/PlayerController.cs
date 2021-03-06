@@ -30,7 +30,6 @@ public class PlayerController : MonoBehaviour
     {
         playerControls.Player.Enable();
         playerControls.Player.Jump.performed += Jumping;
-        playerControls.Player.Jump.canceled += UnJump;
     }
 
     private void OnDisable() => playerControls.Player.Disable();
@@ -70,15 +69,8 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void UnJump(InputAction.CallbackContext ctx)
+    private void OnCollisionEnter(Collision collision)
     {
-        if (jumpCount == 2)
-            StartCoroutine("NulifyJump");
-    }
-
-    IEnumerator NulifyJump()
-    { 
-        yield return new WaitForSeconds(0.5f);
         jumpCount = 0;
     }
 
