@@ -13,6 +13,8 @@ public class PlayerController : MonoBehaviour
     private float jumpForce = 5f;
     [SerializeField]
     private float playerSpeed = 5f;
+    [SerializeField]
+    private int jumpCount;
 
     private void Awake()
     {
@@ -28,6 +30,7 @@ public class PlayerController : MonoBehaviour
     {
         playerControls.Player.Enable();
         playerControls.Player.Jump.performed += Jumping;
+        playerControls.Player.Jump.canceled += UnJump;
     }
 
     private void OnDisable() => playerControls.Player.Disable();
@@ -59,8 +62,24 @@ public class PlayerController : MonoBehaviour
     }
     private void Jumping(InputAction.CallbackContext ctx)
     {
-        animator.SetTrigger("Jump");
-        rbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        if (jumpCount < 2)
+        {
+            animator.SetTrigger("Jump");
+            rbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            jumpCount++;
+        }
+    }
+
+    private void UnJump(InputAction.CallbackContext ctx)
+    {
+        if (jumpCount == 2)
+            StartCoroutine("NulifyJump");
+    }
+
+    IEnumerator NulifyJump()
+    { 
+        yield return new WaitForSeconds(0.5f);
+        jumpCount = 0;
     }
 
 }
