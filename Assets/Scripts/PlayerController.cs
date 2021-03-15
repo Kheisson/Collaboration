@@ -16,9 +16,13 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private int jumpCount;
 
+    private enum PlayerState { onGround, climbing};
+    private PlayerState playerState;
+
     private void Awake()
     {
         playerControls = new PlayerControls();
+        playerState = PlayerState.onGround;
     }
     private void Start()
     {
@@ -42,11 +46,20 @@ public class PlayerController : MonoBehaviour
     {
         //Handle Movement
         var input = playerControls.Player.Movement.ReadValue<Vector2>();
-        var moveVector = new Vector3
+        var moveVector = Vector3.zero;
+
+        if (playerState == PlayerState.climbing)
         {
-            x = input.x,
-            z = input.y
-        };
+            moveVector = new Vector3 { x = input.x, y = input.y };
+            transform.position += moveVector * playerSpeed * Time.deltaTime;
+        }
+        else if (playerState == PlayerState.onGround)
+        {
+            moveVector = new Vector3 { x = input.x, z = input.y };
+            transform.position += moveVector * playerSpeed * Time.deltaTime;
+            //Handle Rotation
+            transform.LookAt(transform.position + moveVector);
+        }
 
         //Handle Walking animation
         if (input.magnitude > 0.1)
@@ -54,10 +67,6 @@ public class PlayerController : MonoBehaviour
         else
             animator.SetBool("isWalking", false);
 
-        transform.position += moveVector * playerSpeed * Time.deltaTime;
-
-        //Handle Rotation
-        transform.LookAt(transform.position + moveVector);
     }
     private void Jumping(InputAction.CallbackContext ctx)
     {
@@ -72,6 +81,22 @@ public class PlayerController : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         jumpCount = 0;
+
+        if (collision.gameObject.CompareTag("Climbable"))
+        {
+            playerState = PlayerState.climbing;
+            rbody.useGravity = false;
+        }
+        
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Climbable"))
+        {
+            playerState = PlayerState.onGround;
+            rbody.useGravity = true;
+        }
     }
 
 }
